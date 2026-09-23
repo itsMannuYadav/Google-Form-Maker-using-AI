@@ -62,6 +62,11 @@ export interface ChatMessage {
   timestamp: number;
   suggestions?: string[]; // Quick chips for non-technical users
   isClarification?: boolean;
+  // Snapshot of the form as it was immediately before this message's change
+  // was applied. Present only on assistant messages that changed the form;
+  // lets the user undo just that one change.
+  formSnapshotBefore?: FormDefinition | null;
+  undone?: boolean;
 }
 
 export interface SavedFormRecord {

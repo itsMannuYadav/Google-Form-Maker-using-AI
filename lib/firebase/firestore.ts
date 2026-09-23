@@ -6,7 +6,6 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
   updateDoc,
   deleteDoc,
   serverTimestamp,
@@ -105,11 +104,10 @@ export async function saveFormDraft(
 export async function getUserForms(userId: string): Promise<SavedFormRecord[]> {
   if (isRealFirebaseConfigured()) {
     try {
-      const q = query(
-        collection(db, FORMS_COLLECTION),
-        where("userId", "==", userId),
-        orderBy("updatedAt", "desc")
-      );
+      // Note: intentionally no orderBy() here — combining it with the where()
+      // clause below requires a Firestore composite index that this project
+      // does not provision. Sorting is done client-side instead.
+      const q = query(collection(db, FORMS_COLLECTION), where("userId", "==", userId));
       const snapshot = await getDocs(q);
       const forms: SavedFormRecord[] = [];
       snapshot.forEach((docSnap) => {
@@ -121,6 +119,7 @@ export async function getUserForms(userId: string): Promise<SavedFormRecord[]> {
           updatedAt: data.updatedAt?.toMillis ? data.updatedAt.toMillis() : data.updatedAt || Date.now(),
         } as SavedFormRecord);
       });
+      forms.sort((a, b) => b.updatedAt - a.updatedAt);
       if (forms.length > 0) return forms;
     } catch (e) {
       console.warn("Firestore fetch failed, falling back to local storage:", e);

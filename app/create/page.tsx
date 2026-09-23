@@ -108,6 +108,10 @@ function CreateFormContent() {
     setMessages(newHistory);
     setLoading(true);
 
+    // Snapshot the form exactly as it is before this request is applied,
+    // so the resulting assistant message can be undone back to this state.
+    const formSnapshotBefore = formDef;
+
     try {
       const response = await fetch("/api/groq/generate", {
         method: "POST",
@@ -132,6 +136,7 @@ function CreateFormContent() {
         timestamp: Date.now(),
         suggestions: data.suggestions || [],
         isClarification: data.isClarification,
+        formSnapshotBefore: data.formDefinition ? formSnapshotBefore : undefined,
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
@@ -167,6 +172,25 @@ function CreateFormContent() {
         setCurrentFormId(rec.id);
       });
     }
+  };
+
+  const handleUndoMessage = (message: ChatMessage) => {
+    if (message.formSnapshotBefore === undefined) return;
+    const snapshot = message.formSnapshotBefore;
+
+    setFormDef(snapshot);
+    setMessages((prev) =>
+      prev.map((m) => (m.id === message.id ? { ...m, undone: true } : m))
+    );
+    setMobileTab("preview");
+
+    if (user && snapshot) {
+      saveFormDraft(user.uid, snapshot, currentFormId || undefined).then((rec) => {
+        setCurrentFormId(rec.id);
+      });
+    }
+
+    showToast("Change undone. Form reverted.");
   };
 
   const handleOpenQuestionEditor = (q: FormQuestion) => {
@@ -386,6 +410,7 @@ function CreateFormContent() {
             loading={loading}
             onSendMessage={handleSendMessage}
             onResetChat={() => setShowResetModal(true)}
+            onUndoMessage={handleUndoMessage}
           />
         </div>
 
