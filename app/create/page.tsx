@@ -22,6 +22,7 @@ function CreateFormContent() {
 
   const [formDef, setFormDef] = useState<FormDefinition | null>(null);
   const [currentFormId, setCurrentFormId] = useState<string | null>(null);
+  const [linkedGoogleFormId, setLinkedGoogleFormId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingExistingForm, setLoadingExistingForm] = useState(Boolean(editFormId));
@@ -83,6 +84,7 @@ function CreateFormContent() {
           if (record) {
             setFormDef(record.formDefinition);
             setCurrentFormId(record.id);
+            setLinkedGoogleFormId(record.googleFormId || null);
             setMessages([
               {
                 id: "msg_welcome",
@@ -286,6 +288,7 @@ function CreateFormContent() {
         body: JSON.stringify({
           formDefinition: formDef,
           accessToken: googleAccessToken,
+          googleFormId: linkedGoogleFormId,
         }),
       });
 
@@ -324,6 +327,12 @@ function CreateFormContent() {
           result.editUri
         );
       }
+      setLinkedGoogleFormId(result.googleFormId);
+
+      if (result.updated) {
+        showToast("Your Google Form has been updated.");
+        return;
+      }
 
       setSuccessData({
         isOpen: true,
@@ -346,6 +355,7 @@ function CreateFormContent() {
   const executeReset = () => {
     setFormDef(null);
     setCurrentFormId(null);
+    setLinkedGoogleFormId(null);
     setShowResetModal(false);
     setMessages([
       {
@@ -470,6 +480,7 @@ function CreateFormContent() {
             onPublishClick={() => setShowConfirmModal(true)}
             onSaveDraftClick={user ? handleSaveDraftManually : undefined}
             isPublishing={isPublishing}
+            isPublished={Boolean(linkedGoogleFormId)}
           />
         </div>
       </div>
@@ -491,11 +502,19 @@ function CreateFormContent() {
                 Review & Confirm
               </span>
               <h3 className="text-xl font-bold text-slate-900">
-                Ready to create your Google Form?
+                {linkedGoogleFormId ? "Update your Google Form?" : "Ready to create your Google Form?"}
               </h3>
               <p className="text-xs text-slate-500">
-                We will generate this form directly in your Google account using the Google Forms API.
+                {linkedGoogleFormId
+                  ? "We will apply these changes to your existing Google Form — the same link stays valid for respondents."
+                  : "We will generate this form directly in your Google account using the Google Forms API."}
               </p>
+              {linkedGoogleFormId && (
+                <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5">
+                  Existing responses are kept. If the form already has responses, answers to edited
+                  questions may show up as separate columns in your response sheet.
+                </p>
+              )}
             </div>
 
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2 text-xs">
@@ -527,7 +546,7 @@ function CreateFormContent() {
                 className="inline-flex items-center gap-2 rounded-xl bg-gov-800 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-gov-900 transition-colors"
               >
                 <Sparkles className="h-4 w-4 text-gov-200" />
-                <span>Confirm & Create Google Form</span>
+                <span>{linkedGoogleFormId ? "Confirm & Update Google Form" : "Confirm & Create Google Form"}</span>
               </button>
             </div>
           </div>

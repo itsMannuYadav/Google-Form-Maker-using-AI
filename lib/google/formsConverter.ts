@@ -43,10 +43,44 @@ export interface GoogleFormsBatchRequest {
   };
   updateFormInfo?: {
     info: {
+      title?: string;
       description?: string;
     };
     updateMask: string;
   };
+  deleteItem?: {
+    location: {
+      index: number;
+    };
+  };
+}
+
+/**
+ * Builds a batchUpdate that replaces an existing Google Form's contents with formDef.
+ * Items are deleted last-to-first so indices stay valid, then recreated in order.
+ */
+export function buildGoogleFormsUpdateRequests(
+  formDef: FormDefinition,
+  existingItemCount: number
+): GoogleFormsBatchRequest[] {
+  const deletes: GoogleFormsBatchRequest[] = [];
+  for (let i = existingItemCount - 1; i >= 0; i--) {
+    deletes.push({ deleteItem: { location: { index: i } } });
+  }
+
+  const infoUpdate: GoogleFormsBatchRequest = {
+    updateFormInfo: {
+      info: {
+        title: formDef.title || "Untitled Form",
+        description: formDef.description || "",
+      },
+      updateMask: "title,description",
+    },
+  };
+
+  const creates = buildGoogleFormsRequests(formDef).batchRequests.filter((r) => r.createItem);
+
+  return [...deletes, infoUpdate, ...creates];
 }
 
 /**

@@ -70,34 +70,40 @@ export async function saveFormDraft(
   formDef: FormDefinition,
   formId?: string
 ): Promise<SavedFormRecord> {
+  const isNew = !formId;
   const id = formId || `form_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = Date.now();
 
-  const record: SavedFormRecord = {
+  // For existing records only content fields are written, so publish info
+  // (googleFormId, responderUri, editUri, status) and createdAt survive edits.
+  const contentFields = {
     id,
     userId,
     title: formDef.title || "Untitled Form",
     description: formDef.description || "",
-    status: "draft",
-    createdAt: now,
     updatedAt: now,
     formDefinition: formDef,
   };
+  const record: SavedFormRecord = { ...contentFields, status: "draft", createdAt: now };
 
   if (isRealFirebaseConfigured()) {
     try {
       const docRef = doc(db, FORMS_COLLECTION, id);
-      await setDoc(docRef, {
-        ...record,
-        updatedAt: serverTimestamp(),
-      });
+      await setDoc(
+        docRef,
+        isNew
+          ? { ...record, updatedAt: serverTimestamp() }
+          : { ...contentFields, updatedAt: serverTimestamp() },
+        { merge: true }
+      );
       return record;
     } catch (e) {
       console.warn("Firestore save failed, falling back to local storage:", e);
     }
   }
 
-  saveLocalForm(record);
+  const existing = isNew ? undefined : getLocalForms(userId).find((f) => f.id === id);
+  saveLocalForm(existing ? { ...existing, ...contentFields } : record);
   return record;
 }
 

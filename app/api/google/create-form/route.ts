@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { FormDefinitionSchema } from "@/lib/validation/formSchema";
-import { buildGoogleFormsRequests } from "@/lib/google/formsConverter";
+import { buildGoogleFormsRequests, buildGoogleFormsUpdateRequests } from "@/lib/google/formsConverter";
 import { FormDefinition } from "@/types/form";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { formDefinition, accessToken } = body;
+    const { formDefinition, accessToken, googleFormId: existingGoogleFormId } = body;
 
     // 1. Strict Schema Validation
     const validation = FormDefinitionSchema.safeParse(formDefinition);
@@ -41,6 +41,38 @@ export async function POST(req: NextRequest) {
       authClient.setCredentials({ access_token: accessToken });
 
       const forms = google.forms({ version: "v1", auth: authClient });
+
+      // Already published: update the existing Google Form in place
+      if (typeof existingGoogleFormId === "string" && existingGoogleFormId.trim() !== "") {
+        let existing;
+        try {
+          existing = await forms.forms.get({ formId: existingGoogleFormId });
+        } catch (getError: any) {
+          // Original form was deleted from Drive — fall through and create a fresh one
+          if (getError?.response?.status !== 404) throw getError;
+        }
+
+        if (existing) {
+          const itemCount = existing.data.items?.length || 0;
+          await forms.forms.batchUpdate({
+            formId: existingGoogleFormId,
+            requestBody: {
+              requests: buildGoogleFormsUpdateRequests(validatedForm, itemCount) as any,
+            },
+          });
+
+          return NextResponse.json({
+            success: true,
+            updated: true,
+            googleFormId: existingGoogleFormId,
+            responderUri:
+              existing.data.responderUri ||
+              `https://docs.google.com/forms/d/e/${existingGoogleFormId}/viewform`,
+            editUri: `https://docs.google.com/forms/d/${existingGoogleFormId}/edit`,
+            title: validatedForm.title,
+          });
+        }
+      }
 
       // Step 1: Create the base Google Form
       const createRes = await forms.forms.create({

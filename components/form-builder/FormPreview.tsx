@@ -35,6 +35,7 @@ interface FormPreviewProps {
   onPublishClick: () => void;
   onSaveDraftClick?: () => void;
   isPublishing?: boolean;
+  isPublished?: boolean;
 }
 
 export default function FormPreview({
@@ -44,6 +45,7 @@ export default function FormPreview({
   onPublishClick,
   onSaveDraftClick,
   isPublishing,
+  isPublished,
 }: FormPreviewProps) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingDesc, setEditingDesc] = useState(false);
@@ -147,7 +149,7 @@ export default function FormPreview({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-4 sm:px-6 py-3 bg-white border-b border-slate-200 shadow-xs">
         <div className="flex items-center gap-2 min-w-0">
           <span className="inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 border border-purple-200 shrink-0">
-            Google Form Ready
+            {isPublished ? "Published" : "Google Form Ready"}
           </span>
           <span className="text-xs text-slate-500 truncate">
             {totalQuestions} {totalQuestions === 1 ? "Question" : "Questions"} • {formDef.sections.length}{" "}
@@ -172,7 +174,9 @@ export default function FormPreview({
             className="inline-flex flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg bg-gov-800 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-gov-900 disabled:opacity-50 transition-colors"
           >
             <Sparkles className="h-3.5 w-3.5 text-gov-200 shrink-0" />
-            <span className="truncate">{isPublishing ? "Publishing..." : "Create Google Form →"}</span>
+            <span className="truncate">{isPublishing
+                ? isPublished ? "Updating..." : "Publishing..."
+                : isPublished ? "Update Google Form →" : "Create Google Form →"}</span>
           </button>
         </div>
       </div>
