@@ -22,7 +22,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-2 text-xs text-slate-500 pt-2">
               <Shield className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Secure Google OAuth integration • Zero response data stored</span>
+              <span>Secure Google OAuth integration • We never store form responses</span>
             </div>
           </div>
 
@@ -43,8 +43,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="hover:text-gov-800 transition-colors">
-                  Prompt Examples
+                <Link href="/whats-new" className="hover:text-gov-800 transition-colors">
+                  What&apos;s New
                 </Link>
               </li>
               <li>
@@ -61,6 +61,21 @@ export default function Footer() {
               Guidance & Security
             </h4>
             <ul className="space-y-2 text-sm text-slate-600">
+              <li>
+                <Link href="/help" className="hover:text-gov-800 transition-colors">
+                  User Guide
+                </Link>
+              </li>
+              <li>
+                <Link href="/help#chat-commands" className="hover:text-gov-800 transition-colors">
+                  Prompt Examples
+                </Link>
+              </li>
+              <li>
+                <Link href="/help#troubleshooting" className="hover:text-gov-800 transition-colors">
+                  Troubleshooting
+                </Link>
+              </li>
               <li>
                 <Link href="/help#faq" className="hover:text-gov-800 transition-colors">
                   Frequently Asked Questions

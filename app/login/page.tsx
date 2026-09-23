@@ -56,7 +56,7 @@ export default function LoginPage() {
             <span>Why Google Access is Needed</span>
           </div>
           <p className="text-[12px] leading-relaxed text-slate-600">
-            We need permission to create Google Forms in your Google Drive. We do not access your existing emails or unrelated files.
+            We need permission to create and update Google Forms in your Google Drive. We can only manage forms this app creates, and never access your email or other files.
           </p>
         </div>
 
@@ -107,6 +107,9 @@ export default function LoginPage() {
             <span>Continue as Administrative Guest</span>
             <ArrowRight className="h-3.5 w-3.5 text-slate-500" />
           </button>
+          <p className="text-center text-[11px] text-slate-400 leading-relaxed">
+            Guest drafts stay in this browser. Sign in with Google to create the real Google Form.
+          </p>
         </div>
 
         {/* Security badges */}

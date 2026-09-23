@@ -110,7 +110,12 @@ export async function POST(req: NextRequest) {
         title: validatedForm.title,
       });
     } catch (googleError: any) {
-      console.error("Google Forms API execution error:", googleError);
+      // Log only status/message: the full error object carries request config, including the Authorization header.
+      console.error(
+        "Google Forms API execution error:",
+        googleError?.response?.status,
+        googleError?.response?.data?.error?.message || googleError?.message
+      );
 
       const errorData = googleError?.response?.data?.error || {};
       const errorMessage = errorData.message || googleError?.message || "Could not connect to Google Forms service.";
