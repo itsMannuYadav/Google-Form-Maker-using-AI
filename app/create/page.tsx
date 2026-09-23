@@ -1,0 +1,531 @@
+"use client";
+
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/context/AuthContext";
+import { FormDefinition, FormQuestion, ChatMessage } from "@/types/form";
+import { saveFormDraft, updateFormPublication } from "@/lib/firebase/firestore";
+import ChatPanel from "@/components/form-builder/ChatPanel";
+import FormPreview from "@/components/form-builder/FormPreview";
+import QuestionEditorModal from "@/components/form-builder/QuestionEditorModal";
+import CreateSuccessModal from "@/components/form-builder/CreateSuccessModal";
+import { Sparkles, ArrowLeft, Loader2, AlertTriangle, ExternalLink, CheckCircle2, ShieldAlert, LogIn } from "lucide-react";
+import Link from "next/link";
+import { generateId } from "@/lib/utils";
+
+function CreateFormContent() {
+  const searchParams = useSearchParams();
+  const initialPrompt = searchParams.get("prompt");
+  const router = useRouter();
+  const { user, googleAccessToken, signInWithGoogle } = useAuth();
+
+  const [formDef, setFormDef] = useState<FormDefinition | null>(null);
+  const [currentFormId, setCurrentFormId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Question modal editor
+  const [editingQuestion, setEditingQuestion] = useState<FormQuestion | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+  // Publish confirmation modal
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Reset confirmation modal
+  const [showResetModal, setShowResetModal] = useState(false);
+
+  // Error / API Enable Required modal
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    isApiDisabled?: boolean;
+    isPermissionError?: boolean;
+    isAuthRequired?: boolean;
+    enableUrl?: string;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+
+  // Success modal
+  const [successData, setSuccessData] = useState<{
+    isOpen: boolean;
+    formTitle: string;
+    responderUri: string;
+    editUri?: string;
+    googleFormId: string;
+  }>({
+    isOpen: false,
+    formTitle: "",
+    responderUri: "",
+    editUri: "",
+    googleFormId: "",
+  });
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  // Initial welcome message
+  useEffect(() => {
+    const welcomeMsg: ChatMessage = {
+      id: "msg_welcome",
+      sender: "assistant",
+      content:
+        "Hello! I am your Google Forms assistant. Describe what information your form should collect (for example: student registration, employee survey, project feedback, or scholarship application) and I will design it for you.",
+      timestamp: Date.now(),
+      suggestions: [
+        "Registration form for students and teachers",
+        "Student project submission and feedback form",
+        "Citizen feedback survey with 1-5 ratings",
+        "Scholarship application form",
+      ],
+    };
+    setMessages([welcomeMsg]);
+
+    if (initialPrompt && initialPrompt.trim()) {
+      handleSendMessage(initialPrompt.trim());
+    }
+  }, [initialPrompt]);
+
+  const handleSendMessage = async (userPrompt: string) => {
+    if (!userPrompt.trim() || loading) return;
+
+    const userMsg: ChatMessage = {
+      id: generateId("msg"),
+      sender: "user",
+      content: userPrompt,
+      timestamp: Date.now(),
+    };
+
+    const newHistory = [...messages, userMsg];
+    setMessages(newHistory);
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/groq/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: userPrompt,
+          chatHistory: newHistory,
+          currentForm: formDef,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to process form request.");
+      }
+
+      const assistantMsg: ChatMessage = {
+        id: generateId("msg"),
+        sender: "assistant",
+        content: data.reply || "I have updated your form definition.",
+        timestamp: Date.now(),
+        suggestions: data.suggestions || [],
+        isClarification: data.isClarification,
+      };
+
+      setMessages((prev) => [...prev, assistantMsg]);
+
+      if (data.formDefinition) {
+        setFormDef(data.formDefinition);
+        if (user) {
+          saveFormDraft(user.uid, data.formDefinition, currentFormId || undefined).then((rec) => {
+            setCurrentFormId(rec.id);
+          });
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      const errorMsg: ChatMessage = {
+        id: generateId("msg"),
+        sender: "assistant",
+        content:
+          "I ran into an issue understanding that specific request. I've preserved your current draft. You can try phrasing it simply (e.g. 'Add email field' or 'Make mobile mandatory').",
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateForm = (updated: FormDefinition) => {
+    setFormDef(updated);
+    if (user) {
+      saveFormDraft(user.uid, updated, currentFormId || undefined).then((rec) => {
+        setCurrentFormId(rec.id);
+      });
+    }
+  };
+
+  const handleOpenQuestionEditor = (q: FormQuestion) => {
+    setEditingQuestion(q);
+    setIsEditorOpen(true);
+  };
+
+  const handleSaveQuestionEdit = (updatedQ: FormQuestion) => {
+    if (!formDef) return;
+    const updated = JSON.parse(JSON.stringify(formDef)) as FormDefinition;
+    updated.sections.forEach((sec) => {
+      const idx = sec.questions.findIndex((q) => q.id === updatedQ.id);
+      if (idx >= 0) {
+        sec.questions[idx] = updatedQ;
+      }
+    });
+    handleUpdateForm(updated);
+    showToast("Question updated successfully.");
+  };
+
+  const handleSaveDraftManually = async () => {
+    if (!formDef) return;
+    if (!user) {
+      showToast("Please sign in with Google to save drafts.");
+      return;
+    }
+    const rec = await saveFormDraft(user.uid, formDef, currentFormId || undefined);
+    setCurrentFormId(rec.id);
+    showToast("Draft saved to Dashboard!");
+  };
+
+  const handlePublishConfirmed = async () => {
+    if (!formDef) return;
+
+    // Check if user has Google Auth token
+    if (!user || user.isDemo || !googleAccessToken) {
+      setShowConfirmModal(false);
+      setErrorModal({
+        isOpen: true,
+        title: "Google Authentication Required",
+        message: "To create the form directly in your Google Drive, please sign in with your Google account.",
+        isAuthRequired: true,
+      });
+      return;
+    }
+
+    setIsPublishing(true);
+    setShowConfirmModal(false);
+
+    try {
+      let recordId = currentFormId;
+      if (user) {
+        const rec = await saveFormDraft(user.uid, formDef, currentFormId || undefined);
+        recordId = rec.id;
+        setCurrentFormId(rec.id);
+      }
+
+      const res = await fetch("/api/google/create-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          formDefinition: formDef,
+          accessToken: googleAccessToken,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        if (result.isApiDisabled) {
+          setErrorModal({
+            isOpen: true,
+            title: "Enable Google Forms API in Google Cloud",
+            message: "The Google Forms API is currently disabled on your Google Cloud project (gov-form-maker-mannu). Click the button below to enable it in 10 seconds, then try again.",
+            isApiDisabled: true,
+            enableUrl: result.enableUrl,
+          });
+          return;
+        }
+
+        if (result.isPermissionError) {
+          setErrorModal({
+            isOpen: true,
+            title: "Google Permissions Required",
+            message: "Your Google session requires permission to create Google Forms in your Drive. Please click below to reconnect your Google account.",
+            isPermissionError: true,
+          });
+          return;
+        }
+
+        throw new Error(result.error || "Failed to create Google Form.");
+      }
+
+      if (recordId) {
+        await updateFormPublication(
+          recordId,
+          result.googleFormId,
+          result.responderUri,
+          result.editUri
+        );
+      }
+
+      setSuccessData({
+        isOpen: true,
+        formTitle: formDef.title,
+        responderUri: result.responderUri,
+        editUri: result.editUri,
+        googleFormId: result.googleFormId,
+      });
+    } catch (err: any) {
+      setErrorModal({
+        isOpen: true,
+        title: "Form Creation Notice",
+        message: err.message || "An unexpected error occurred while communicating with Google Forms API. Your draft has been kept safe.",
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const executeReset = () => {
+    setFormDef(null);
+    setCurrentFormId(null);
+    setShowResetModal(false);
+    setMessages([
+      {
+        id: "msg_welcome",
+        sender: "assistant",
+        content: "Ready! Tell me what form you would like to create.",
+        timestamp: Date.now(),
+        suggestions: [
+          "Registration form for students and teachers",
+          "Student project feedback form",
+          "Citizen feedback survey",
+          "Scholarship application form",
+        ],
+      },
+    ]);
+  };
+
+  return (
+    <div className="flex-1 min-h-0 flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-white relative">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="absolute top-4 right-4 z-50 rounded-xl bg-slate-900 text-white px-4 py-2.5 text-xs shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Top Breadcrumb Bar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-200 text-xs text-slate-600 shrink-0">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1 hover:text-slate-900 font-medium text-slate-500"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Dashboard</span>
+          </Link>
+          <span>/</span>
+          <span className="font-semibold text-slate-800 truncate max-w-[200px]">
+            {formDef?.title || "New Form Builder"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] text-slate-500 hidden sm:inline">
+            Natural Language Form Builder
+          </span>
+        </div>
+      </div>
+
+      {/* Main Dual-Pane Workspace */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-12 overflow-hidden">
+        {/* Left Pane: AI Chat Assistant (5 cols) */}
+        <div className="md:col-span-5 h-full min-h-0 flex flex-col overflow-hidden border-b md:border-b-0 md:border-r border-slate-200">
+          <ChatPanel
+            messages={messages}
+            loading={loading}
+            onSendMessage={handleSendMessage}
+            onResetChat={() => setShowResetModal(true)}
+          />
+        </div>
+
+        {/* Right Pane: Live Interactive Preview (7 cols) */}
+        <div className="md:col-span-7 h-full min-h-0 flex flex-col overflow-hidden">
+          <FormPreview
+            formDef={formDef}
+            onUpdateForm={handleUpdateForm}
+            onOpenQuestionEditor={handleOpenQuestionEditor}
+            onPublishClick={() => setShowConfirmModal(true)}
+            onSaveDraftClick={user ? handleSaveDraftManually : undefined}
+            isPublishing={isPublishing}
+          />
+        </div>
+      </div>
+
+      {/* Question Edit Modal */}
+      <QuestionEditorModal
+        question={editingQuestion}
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        onSave={handleSaveQuestionEdit}
+      />
+
+      {/* Confirmation Before Creation Modal (Section 17) */}
+      {showConfirmModal && formDef && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-5">
+            <div className="space-y-1">
+              <span className="text-xs font-semibold text-gov-800 uppercase tracking-wider">
+                Review & Confirm
+              </span>
+              <h3 className="text-xl font-bold text-slate-900">
+                Ready to create your Google Form?
+              </h3>
+              <p className="text-xs text-slate-500">
+                We will generate this form directly in your Google account using the Google Forms API.
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Title:</span>
+                <span className="font-semibold text-slate-900">{formDef.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Sections:</span>
+                <span className="font-semibold text-slate-900">{formDef.sections.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Total Questions:</span>
+                <span className="font-semibold text-slate-900">
+                  {formDef.sections.reduce((acc, s) => acc + s.questions.length, 0)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="rounded-xl px-4 py-2.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                ← Keep Editing
+              </button>
+              <button
+                onClick={handlePublishConfirmed}
+                className="inline-flex items-center gap-2 rounded-xl bg-gov-800 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-gov-900 transition-colors"
+              >
+                <Sparkles className="h-4 w-4 text-gov-200" />
+                <span>Confirm & Create Google Form</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Confirmation Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
+            <h3 className="text-base font-bold text-slate-900">Start a New Form?</h3>
+            <p className="text-xs text-slate-500">
+              This will clear your current conversation and draft so you can design a new form.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeReset}
+                className="rounded-lg bg-gov-800 px-4 py-2 text-xs font-semibold text-white hover:bg-gov-900"
+              >
+                Start New Form
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error / API Configuration Modal */}
+      {errorModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-900">{errorModal.title}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">{errorModal.message}</p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+              {errorModal.isApiDisabled && errorModal.enableUrl && (
+                <a
+                  href={errorModal.enableUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gov-800 py-2.5 px-4 text-xs font-semibold text-white hover:bg-gov-900 transition-colors"
+                >
+                  <span>1. Click to Enable Google Forms API</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+
+              {(errorModal.isAuthRequired || errorModal.isPermissionError) && (
+                <button
+                  onClick={async () => {
+                    setErrorModal({ ...errorModal, isOpen: false });
+                    await signInWithGoogle();
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gov-800 py-2.5 px-4 text-xs font-semibold text-white hover:bg-gov-900 transition-colors"
+                >
+                  <LogIn className="h-3.5 w-3.5" />
+                  <span>Sign In with Google with Forms Permission</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
+                className="rounded-xl border border-slate-200 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Close (Draft Preserved)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Creation Success Modal */}
+      <CreateSuccessModal
+        isOpen={successData.isOpen}
+        onClose={() => setSuccessData({ ...successData, isOpen: false })}
+        formTitle={successData.formTitle}
+        responderUri={successData.responderUri}
+        editUri={successData.editUri}
+        googleFormId={successData.googleFormId}
+      />
+    </div>
+  );
+}
+
+export default function CreateFormPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center p-8 bg-slate-50">
+          <div className="flex items-center gap-3 text-slate-500 text-sm">
+            <Loader2 className="h-5 w-5 animate-spin text-gov-800" />
+            <span>Loading Form Builder…</span>
+          </div>
+        </div>
+      }
+    >
+      <CreateFormContent />
+    </Suspense>
+  );
+}
