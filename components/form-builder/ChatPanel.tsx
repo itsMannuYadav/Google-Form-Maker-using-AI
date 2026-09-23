@@ -62,34 +62,45 @@ export default function ChatPanel({
 
   return (
     <div className="flex flex-col flex-1 h-full min-h-0 bg-white border-r border-slate-200 overflow-hidden">
-      {/* Header */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50/70">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gov-800 text-white">
-            <Sparkles className="h-4 w-4" />
+      {/* Scrollable region: header scrolls away with the messages, not pinned */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50/70">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gov-800 text-white">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">AI Form Assistant</h3>
+              <p className="text-[11px] text-slate-500">Describe or modify your form in plain English</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-900">AI Form Assistant</h3>
-            <p className="text-[11px] text-slate-500">Describe or modify your form in plain English</p>
-          </div>
+
+          {onResetChat && (
+            <button
+              onClick={onResetChat}
+              title="Start New Form"
+              className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 px-2 py-1 rounded hover:bg-slate-200/60 transition-colors cursor-pointer"
+            >
+              <RefreshCw className="h-3 w-3" />
+              <span>Restart</span>
+            </button>
+          )}
         </div>
 
-        {onResetChat && (
-          <button
-            onClick={onResetChat}
-            title="Start New Form"
-            className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 px-2 py-1 rounded hover:bg-slate-200/60 transition-colors cursor-pointer"
-          >
-            <RefreshCw className="h-3 w-3" />
-            <span>Restart</span>
-          </button>
-        )}
-      </div>
-
-      {/* Messages List */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => {
+        {/* Messages List */}
+        <div className="p-4 space-y-4">
+        {messages.map((msg, idx) => {
           const isUser = msg.sender === "user";
+          // A user message doesn't carry its own form snapshot — the assistant's
+          // reply right after it does, since that's the message that actually
+          // applied the change. Undo on the user bubble reverts that same change.
+          const undoTarget = isUser ? messages[idx + 1] : msg;
+          const canUndo =
+            undoTarget?.sender === "assistant" &&
+            undoTarget.formSnapshotBefore !== undefined &&
+            !undoTarget.undone;
+          const wasUndone = undoTarget?.sender === "assistant" && undoTarget.undone;
           return (
             <div
               key={msg.id}
@@ -112,38 +123,38 @@ export default function ChatPanel({
                   {msg.content}
                 </div>
 
-                {/* Copy / Undo actions (assistant messages only, ChatGPT-style) */}
-                {!isUser && (
-                  <div className="flex items-center gap-0.5 pl-1">
+                {/* Copy / Undo actions (ChatGPT-style, on both user and assistant messages) */}
+                <div
+                  className={`flex items-center gap-0.5 ${isUser ? "justify-end pr-1" : "pl-1"}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(msg)}
+                    title="Copy message"
+                    className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  >
+                    {copiedId === msg.id ? (
+                      <Check className="h-3.5 w-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+
+                  {canUndo && (
                     <button
                       type="button"
-                      onClick={() => handleCopy(msg)}
-                      title="Copy message"
-                      className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                      onClick={() => setPendingUndo(undoTarget!)}
+                      title="Undo this change"
+                      className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                     >
-                      {copiedId === msg.id ? (
-                        <Check className="h-3.5 w-3.5 text-emerald-600" />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
+                      <Undo2 className="h-3.5 w-3.5" />
                     </button>
+                  )}
 
-                    {msg.formSnapshotBefore !== undefined && !msg.undone && (
-                      <button
-                        type="button"
-                        onClick={() => setPendingUndo(msg)}
-                        title="Undo this change"
-                        className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      >
-                        <Undo2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-
-                    {msg.undone && (
-                      <span className="text-[10px] text-slate-400 italic px-1">Change undone</span>
-                    )}
-                  </div>
-                )}
+                  {wasUndone && (
+                    <span className="text-[10px] text-slate-400 italic px-1">Change undone</span>
+                  )}
+                </div>
 
                 {/* Clarification or quick suggestions chips */}
                 {msg.suggestions && msg.suggestions.length > 0 && (
@@ -186,6 +197,7 @@ export default function ChatPanel({
         )}
 
         <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Suggested Starting Prompts when chat is empty */}
