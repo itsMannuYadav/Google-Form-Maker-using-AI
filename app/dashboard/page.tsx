@@ -161,8 +161,90 @@ export default function DashboardPage() {
               No forms matching &ldquo;{searchQuery}&rdquo; found.
             </div>
           ) : (
-            /* Forms Table */
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+            <>
+              {/* Forms Card List (Mobile) */}
+              <div className="grid grid-cols-1 gap-3 md:hidden">
+                {filteredForms.map((form) => {
+                  const totalQ =
+                    form.formDefinition?.sections?.reduce(
+                      (acc, s) => acc + (s.questions?.length || 0),
+                      0
+                    ) || 0;
+
+                  return (
+                    <div
+                      key={form.id}
+                      onClick={() => router.push(`/forms/${form.id}`)}
+                      className="rounded-2xl border border-slate-200 bg-white shadow-xs p-4 space-y-3 active:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-700 border border-purple-200/70">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <p className="font-semibold text-slate-900 truncate">{form.title}</p>
+                          <p className="text-[11px] text-slate-500 line-clamp-1">
+                            {form.description || "No description provided"}
+                          </p>
+                        </div>
+                        {form.status === "published" ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200 shrink-0">
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span>Published</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 border border-amber-200 shrink-0">
+                            <Clock className="h-3 w-3" />
+                            <span>Draft</span>
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3 text-[11px] text-slate-500 pl-12">
+                        <span>
+                          {totalQ} {totalQ === 1 ? "Question" : "Questions"}
+                        </span>
+                        <span>•</span>
+                        <span>{formatDate(form.createdAt)}</span>
+                      </div>
+
+                      <div
+                        className="flex items-center gap-2 pt-2 border-t border-slate-100"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {form.responderUri && (
+                          <a
+                            href={form.responderUri}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-gov-50 px-2.5 py-2 text-xs font-semibold text-gov-800 hover:bg-gov-100 transition-colors"
+                          >
+                            <span>Open</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                        <Link
+                          href={`/forms/${form.id}`}
+                          className="flex-1 inline-flex items-center justify-center gap-1 rounded-md border border-slate-200 px-2.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                          <span>Edit</span>
+                        </Link>
+                        <button
+                          onClick={(e) => handleDelete(form.id, e)}
+                          className="inline-flex items-center justify-center rounded-md border border-slate-200 px-2.5 py-2 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Delete Form"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Forms Table (Desktop) */}
+              <div className="hidden md:block rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-700">
                   <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
@@ -268,7 +350,8 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>

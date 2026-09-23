@@ -115,6 +115,19 @@ export default function LoginPage() {
           <span>•</span>
           <span>Google Forms API v1</span>
         </div>
+
+        {/* Legal consent notice */}
+        <p className="text-center text-[11px] text-slate-400 leading-relaxed">
+          By continuing, you agree to our{" "}
+          <a href="/terms" className="text-gov-700 underline hover:text-gov-900">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" className="text-gov-700 underline hover:text-gov-900">
+            Privacy Policy
+          </a>
+          .
+        </p>
       </div>
     </div>
   );

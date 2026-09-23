@@ -41,7 +41,7 @@ export default function ChatPanel({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-white border-r border-slate-200 overflow-hidden">
+    <div className="flex flex-col flex-1 h-full min-h-0 bg-white border-r border-slate-200 overflow-hidden">
       {/* Header */}
       <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50/70">
         <div className="flex items-center gap-2">

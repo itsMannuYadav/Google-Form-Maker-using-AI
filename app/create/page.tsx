@@ -9,7 +9,7 @@ import ChatPanel from "@/components/form-builder/ChatPanel";
 import FormPreview from "@/components/form-builder/FormPreview";
 import QuestionEditorModal from "@/components/form-builder/QuestionEditorModal";
 import CreateSuccessModal from "@/components/form-builder/CreateSuccessModal";
-import { Sparkles, ArrowLeft, Loader2, AlertTriangle, ExternalLink, CheckCircle2, ShieldAlert, LogIn } from "lucide-react";
+import { Sparkles, ArrowLeft, Loader2, AlertTriangle, ExternalLink, CheckCircle2, ShieldAlert, LogIn, MessageSquare, Eye } from "lucide-react";
 import Link from "next/link";
 import { generateId } from "@/lib/utils";
 
@@ -25,6 +25,7 @@ function CreateFormContent() {
   const [loading, setLoading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<"chat" | "preview">("chat");
 
   // Question modal editor
   const [editingQuestion, setEditingQuestion] = useState<FormQuestion | null>(null);
@@ -137,6 +138,7 @@ function CreateFormContent() {
 
       if (data.formDefinition) {
         setFormDef(data.formDefinition);
+        setMobileTab("preview");
         if (user) {
           saveFormDraft(user.uid, data.formDefinition, currentFormId || undefined).then((rec) => {
             setCurrentFormId(rec.id);
@@ -317,31 +319,68 @@ function CreateFormContent() {
 
       {/* Top Breadcrumb Bar */}
       <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-200 text-xs text-slate-600 shrink-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1 hover:text-slate-900 font-medium text-slate-500"
+            className="flex items-center gap-1 hover:text-slate-900 font-medium text-slate-500 shrink-0"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Dashboard</span>
+            <span className="hidden sm:inline">Dashboard</span>
           </Link>
-          <span>/</span>
-          <span className="font-semibold text-slate-800 truncate max-w-[200px]">
+          <span className="shrink-0">/</span>
+          <span className="font-semibold text-slate-800 truncate">
             {formDef?.title || "New Form Builder"}
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <span className="text-[11px] text-slate-500 hidden sm:inline">
             Natural Language Form Builder
           </span>
         </div>
       </div>
 
+      {/* Mobile Tab Switcher: Chat <-> Preview */}
+      <div className="flex md:hidden shrink-0 border-b border-slate-200 bg-white">
+        <button
+          type="button"
+          onClick={() => setMobileTab("chat")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+            mobileTab === "chat"
+              ? "border-gov-800 text-gov-800"
+              : "border-transparent text-slate-500"
+          }`}
+        >
+          <MessageSquare className="h-4 w-4" />
+          <span>AI Chat</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab("preview")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+            mobileTab === "preview"
+              ? "border-gov-800 text-gov-800"
+              : "border-transparent text-slate-500"
+          }`}
+        >
+          <Eye className="h-4 w-4" />
+          <span>Preview</span>
+          {formDef && (
+            <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-gov-100 text-gov-800 text-[10px] font-bold">
+              {formDef.sections.reduce((acc, s) => acc + s.questions.length, 0)}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Main Dual-Pane Workspace */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-12 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col md:grid md:grid-cols-12 overflow-hidden">
         {/* Left Pane: AI Chat Assistant (5 cols) */}
-        <div className="md:col-span-5 h-full min-h-0 flex flex-col overflow-hidden border-b md:border-b-0 md:border-r border-slate-200">
+        <div
+          className={`${
+            mobileTab === "chat" ? "flex" : "hidden"
+          } md:flex flex-col flex-1 md:col-span-5 h-full min-h-0 overflow-hidden border-b md:border-b-0 md:border-r border-slate-200`}
+        >
           <ChatPanel
             messages={messages}
             loading={loading}
@@ -351,7 +390,11 @@ function CreateFormContent() {
         </div>
 
         {/* Right Pane: Live Interactive Preview (7 cols) */}
-        <div className="md:col-span-7 h-full min-h-0 flex flex-col overflow-hidden">
+        <div
+          className={`${
+            mobileTab === "preview" ? "flex" : "hidden"
+          } md:flex flex-col flex-1 md:col-span-7 h-full min-h-0 overflow-hidden`}
+        >
           <FormPreview
             formDef={formDef}
             onUpdateForm={handleUpdateForm}

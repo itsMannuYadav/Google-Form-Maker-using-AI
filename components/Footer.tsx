@@ -82,9 +82,15 @@ export default function Footer() {
 
         <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
           <p>© {new Date().getFullYear()} AI Form Builder. Built for official and professional workflows.</p>
-          <p className="flex items-center gap-1">
-            <span>Powered by Groq AI & Google Forms API</span>
-          </p>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-gov-800 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-gov-800 transition-colors">
+              Terms of Service
+            </Link>
+            <span className="hidden sm:inline">Powered by Groq AI & Google Forms API</span>
+          </div>
         </div>
       </div>
     </footer>
