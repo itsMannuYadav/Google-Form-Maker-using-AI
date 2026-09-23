@@ -48,7 +48,13 @@ export default function TermsOfServicePage() {
             <p>
               AI Form Maker lets you describe a form in natural language and uses AI to generate a
               structured Google Form, which is created directly in your own Google Drive using
-              your authorized Google Account.
+              your authorized Google Account. You can edit the form in a live preview, save drafts,
+              and later update forms you published through the service.
+            </p>
+            <p>
+              A guest mode lets you try the builder without a Google Account. Guest drafts are
+              stored only in your browser, and creating a Google Form requires signing in with
+              Google.
             </p>
           </Section>
 
@@ -98,7 +104,22 @@ export default function TermsOfServicePage() {
             </p>
           </Section>
 
-          <Section title="7. Service Availability">
+          <Section title="7. Updating Published Forms">
+            <p>
+              When you update a form you published through the service, its questions and sections
+              are replaced with the version in the builder. Responses already collected are kept
+              in your Google account, but answers to edited questions may be stored separately from
+              answers to the new version. Review changes carefully before updating a form that is
+              already collecting responses.
+            </p>
+            <p>
+              Some Google Forms settings, such as the confirmation message shown after submission,
+              cannot be set through Google&apos;s API. You are responsible for configuring those
+              settings in Google Forms.
+            </p>
+          </Section>
+
+          <Section title="8. Service Availability">
             <p>
               The service is provided &quot;as is&quot; and &quot;as available&quot;, without
               warranties of any kind, express or implied. We do not guarantee uninterrupted or
@@ -106,7 +127,7 @@ export default function TermsOfServicePage() {
             </p>
           </Section>
 
-          <Section title="8. Limitation of Liability">
+          <Section title="9. Limitation of Liability">
             <p>
               To the maximum extent permitted by law, AI Form Maker and its developer are not
               liable for any indirect, incidental, or consequential damages arising from your use
@@ -115,28 +136,28 @@ export default function TermsOfServicePage() {
             </p>
           </Section>
 
-          <Section title="9. Termination">
+          <Section title="10. Termination">
             <p>
               You may stop using the service at any time and revoke its Google Account access. We
               may suspend or terminate access for accounts that violate these terms.
             </p>
           </Section>
 
-          <Section title="10. Changes to These Terms">
+          <Section title="11. Changes to These Terms">
             <p>
               We may update these terms as the service evolves. Continued use of the service after
               changes take effect constitutes acceptance of the updated terms.
             </p>
           </Section>
 
-          <Section title="11. Governing Law">
+          <Section title="12. Governing Law">
             <p>
               These terms are governed by the laws of India, without regard to conflict-of-law
               principles, unless otherwise required by applicable local law.
             </p>
           </Section>
 
-          <Section title="12. Contact Us">
+          <Section title="13. Contact Us">
             <p>
               Questions about these terms? Email{" "}
               <a href={`mailto:${SUPPORT_EMAIL}`} className="text-gov-700 underline hover:text-gov-900">

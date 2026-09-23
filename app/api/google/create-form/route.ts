@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (error: any) {
-    console.error("API /api/google/create-form error:", error);
+    console.error("API /api/google/create-form error:", error?.message);
     return NextResponse.json(
       {
         error: "An unexpected error occurred while creating the form. Your draft has been kept safe.",

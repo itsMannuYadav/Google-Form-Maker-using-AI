@@ -51,15 +51,24 @@ export default function PrivacyPolicyPage() {
               <span className="font-semibold text-slate-800">Google OAuth access token.</span> When
               you grant permission, Google issues a short-lived access token scoped to{" "}
               <code className="rounded bg-slate-100 px-1 py-0.5 text-[12px]">forms.body</code> and{" "}
-              <code className="rounded bg-slate-100 px-1 py-0.5 text-[12px]">drive.file</code>. This
-              token is used only to call the Google Forms and Google Drive APIs on your behalf, in
-              your browser session. We do not store this token on our servers.
+              <code className="rounded bg-slate-100 px-1 py-0.5 text-[12px]">drive.file</code>. The
+              token is kept in your browser&apos;s storage so you stay connected between visits, and
+              it is removed when you sign out. When you create or update a form, the token is sent to
+              our server only for that request, so it can call the Google Forms API on your behalf.
+              We do not store or log it on our servers.
             </p>
             <p>
               <span className="font-semibold text-slate-800">Form content you create.</span> The
-              titles, descriptions, questions, and structure of forms you build are saved to your
-              account (in Firebase Cloud Firestore) so you can view, resume, and manage your form
-              history from the dashboard.
+              titles, descriptions, questions, confirmation message, and structure of forms you
+              build are saved to your account (in Firebase Cloud Firestore) so you can view, resume,
+              and manage your forms from the dashboard. For published forms we also save the Google
+              Form ID and its links, so you can update the same form later.
+            </p>
+            <p>
+              <span className="font-semibold text-slate-800">Guest mode.</span> If you choose
+              &quot;Continue as Administrative Guest&quot;, we do not create an account for you. Your
+              drafts are saved only in your browser&apos;s local storage on that device and are not
+              sent to our database. Clearing your browser data removes them.
             </p>
             <p>
               <span className="font-semibold text-slate-800">Prompts you type.</span> The natural
@@ -82,6 +91,10 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-5 space-y-1">
               <li>To authenticate you and keep you signed in.</li>
               <li>To create, update, and manage Google Forms and Drive files that you request.</li>
+              <li>
+                When you update a form you published through this app, to read that form&apos;s
+                current structure so its questions can be replaced with your new version.
+              </li>
               <li>To save and display your draft and published form history.</li>
               <li>To generate and modify form structure using AI based on your instructions.</li>
               <li>To diagnose errors and keep the service reliable and secure.</li>
@@ -122,7 +135,8 @@ export default function PrivacyPolicyPage() {
           <Section title="7. Data Retention &amp; Deletion">
             <p>
               Form drafts and metadata remain in your account until you delete them from the
-              dashboard or request deletion. You can revoke this app&apos;s access to your Google
+              dashboard or request deletion. Deleting a form from the dashboard removes our record
+              of it; the Google Form itself stays in your Google Drive until you delete it there. You can revoke this app&apos;s access to your Google
               Account at any time from your{" "}
               <a
                 href="https://myaccount.google.com/permissions"
@@ -139,8 +153,8 @@ export default function PrivacyPolicyPage() {
           <Section title="8. Security">
             <p>
               All traffic is encrypted with HTTPS/TLS. Google sign-in and API access use the
-              standard OAuth 2.0 protocol. Access tokens are never written to persistent server
-              storage.
+              standard OAuth 2.0 protocol. Access tokens are never written to server storage or
+              server logs.
             </p>
           </Section>
 

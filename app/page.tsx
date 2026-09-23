@@ -190,8 +190,8 @@ export default function LandingPage() {
                 tone: "bg-gov-50 text-gov-800",
                 title: "Describe what you need",
                 body: "Type in your own words or pick a quick example. The AI drafts every section and question, and asks a quick follow-up if something is unclear.",
-                shot: "builder-empty" as const,
-                alt: "The builder before a form is created, with quick example prompts",
+                shot: "chat-empty" as const,
+                alt: "The AI assistant chat with starter suggestions and quick examples",
               },
               {
                 n: 2,
@@ -211,7 +211,7 @@ export default function LandingPage() {
               },
             ].map((step) => (
               <div key={step.n} className="rounded-2xl bg-white p-5 shadow-xs border border-slate-200 space-y-4">
-                <Screenshot name={step.shot} alt={step.alt} fitAspect="aspect-[4/3]" />
+                <Screenshot name={step.shot} alt={step.alt} fitAspect="aspect-[4/3]" crop />
                 <div className="space-y-2 px-1">
                   <div className="flex items-center gap-3">
                     <div className={`flex h-9 w-9 items-center justify-center rounded-xl font-bold ${step.tone}`}>
@@ -273,11 +273,9 @@ export default function LandingPage() {
                 "Copy any message with one click",
               ]}
               visual={
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-center">
-                  <div className="sm:col-span-3">
-                    <Screenshot name="chat-panel" alt="Chat messages with copy and undo buttons" />
-                  </div>
-                  <div className="sm:col-span-2">
+                <div className="relative pb-16 sm:pb-20">
+                  <Screenshot name="chat-panel" alt="Chat messages with copy and undo buttons" fitAspect="aspect-[4/3]" crop />
+                  <div className="absolute bottom-0 right-0 w-3/5 sm:w-1/2 drop-shadow-2xl">
                     <Screenshot name="undo-modal" alt="The Undo this change confirmation dialog" />
                   </div>
                 </div>

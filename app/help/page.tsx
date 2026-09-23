@@ -272,13 +272,11 @@ export default function HelpPage() {
                 At the bottom of the preview, click the confirmation message to write what respondents see after
                 they submit.
               </p>
-              <Screenshot name="confirmation-message" alt="The editable submission confirmation message card" />
-              <Note tone="warn">
-                Google&apos;s API doesn&apos;t allow apps to set this message. After creating the form, open it in
-                Google Forms → <span className="font-semibold">Settings</span> →{" "}
-                <span className="font-semibold">Presentation</span> →{" "}
-                <span className="font-semibold">Confirmation message</span> and paste it there.
-              </Note>
+              <Screenshot
+                name="confirmation-message"
+                alt="The editable submission confirmation message card"
+                caption="Google's API can't set this message, so paste it in Google Forms under Settings → Presentation → Confirmation message after creating the form."
+              />
             </GuideSection>
 
             <GuideSection id="undo" step={5} title="Undo a change">

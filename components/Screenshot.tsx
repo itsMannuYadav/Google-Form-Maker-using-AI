@@ -9,6 +9,8 @@ interface ScreenshotProps {
   frame?: "browser" | "phone" | "card";
   // Fits the image inside a fixed-ratio panel (e.g. "aspect-[4/3]") so cards line up
   fitAspect?: string;
+  // With fitAspect: fill the panel and show the top of the image instead of letterboxing it
+  crop?: boolean;
   priority?: boolean;
   className?: string;
 }
@@ -19,6 +21,7 @@ export default function Screenshot({
   caption,
   frame = "card",
   fitAspect,
+  crop = false,
   priority = false,
   className = "",
 }: ScreenshotProps) {
@@ -35,7 +38,7 @@ export default function Screenshot({
       decoding="async"
       className={
         fitAspect
-          ? "h-full w-full object-contain rounded-lg shadow-sm border border-slate-200 bg-white"
+          ? `h-full w-full ${crop ? "object-cover object-top" : "object-contain"} rounded-lg shadow-sm border border-slate-200 bg-white`
           : "block w-full h-auto"
       }
     />
