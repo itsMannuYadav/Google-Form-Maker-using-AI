@@ -14,7 +14,7 @@ export default function Footer() {
                 <FileText className="h-4 w-4" />
               </div>
               <span className="text-base font-semibold text-slate-900">
-                AI Google Form Builder
+                My AI Form Maker
               </span>
             </div>
             <p className="text-sm text-slate-600 max-w-md leading-relaxed">
@@ -96,7 +96,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© {new Date().getFullYear()} AI Form Builder. Built for official and professional workflows.</p>
+          <p>© {new Date().getFullYear()} My AI Form Maker. Built for official and professional workflows.</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="hover:text-gov-800 transition-colors">
               Privacy Policy

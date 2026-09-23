@@ -71,7 +71,7 @@ export default function ChatPanel({
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">AI Form Assistant</h3>
+              <h3 className="text-sm font-semibold text-slate-900">My AI Form Maker</h3>
               <p className="text-[11px] text-slate-500">Describe or modify your form in plain English</p>
             </div>
           </div>

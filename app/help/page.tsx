@@ -321,7 +321,7 @@ export default function HelpPage() {
                 </li>
                 <li>Clicking the row opens the form&apos;s details page.</li>
                 <li>
-                  <span className="font-semibold text-slate-800">Delete</span> removes the record from this app. It
+                  <span className="font-semibold text-slate-800">Delete</span> removes the record from My AI Form Maker. It
                   does not delete the Google Form from your Drive.
                 </li>
               </ul>
@@ -469,14 +469,14 @@ export default function HelpPage() {
                 </div>
                 <div className="space-y-1">
                   <h3 className="font-semibold text-slate-900">Do you see the responses people submit?</h3>
-                  <p>No. Responses go straight to your Google account. This app never reads or stores them.</p>
+                  <p>No. Responses go straight to your Google account. My AI Form Maker never reads or stores them.</p>
                 </div>
                 <div id="permissions" className="space-y-1 scroll-mt-24">
                   <h3 className="font-semibold text-slate-900">How does Google authorization work?</h3>
                   <p>
                     We use official Google OAuth2 and ask only for the minimum permissions:{" "}
                     <code className="text-gov-800">forms.body</code> (create and update your forms) and{" "}
-                    <code className="text-gov-800">drive.file</code> (only files this app creates). You can revoke
+                    <code className="text-gov-800">drive.file</code> (only files My AI Form Maker creates). You can revoke
                     access any time from your{" "}
                     <a
                       href="https://myaccount.google.com/permissions"

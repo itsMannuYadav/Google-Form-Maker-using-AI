@@ -42,7 +42,7 @@ export default function LoginPage() {
             <FileText className="h-6 w-6" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Sign in to AI Form Maker
+            Sign in to My AI Form Maker
           </h1>
           <p className="text-xs text-slate-500 max-w-xs mx-auto">
             Connect your Google account to create and manage Google Forms automatically.
@@ -56,7 +56,7 @@ export default function LoginPage() {
             <span>Why Google Access is Needed</span>
           </div>
           <p className="text-[12px] leading-relaxed text-slate-600">
-            We need permission to create and update Google Forms in your Google Drive. We can only manage forms this app creates, and never access your email or other files.
+            We need permission to create and update Google Forms in your Google Drive. We can only manage forms My AI Form Maker creates, and never access your email or other files.
           </p>
         </div>
 

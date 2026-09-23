@@ -1,8 +1,8 @@
 import { Shield } from "lucide-react";
 
 export const metadata = {
-  title: "Privacy Policy - AI Form Maker",
-  description: "How AI Form Maker collects, uses, and protects your data.",
+  title: "Privacy Policy",
+  description: "How My AI Form Maker collects, uses, and protects your data.",
 };
 
 const SUPPORT_EMAIL = "homeofirstt@gmail.com";
@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
             <span>Privacy Policy</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            AI Form Maker Privacy Policy
+            My AI Form Maker Privacy Policy
           </h1>
           <p className="text-xs text-slate-500">Effective date: {EFFECTIVE_DATE}</p>
         </div>
@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 space-y-8">
           <Section title="1. Overview">
             <p>
-              AI Form Maker (&quot;we&quot;, &quot;us&quot;, &quot;the application&quot;) helps you create Google
+              My AI Form Maker (&quot;we&quot;, &quot;us&quot;, &quot;the application&quot;) helps you create Google
               Forms by describing what you need in plain language. This policy explains what
               information we collect, how we use it, and how it relates to your Google Account.
             </p>
@@ -83,7 +83,7 @@ export default function PrivacyPolicyPage() {
             <p>
               We never access, read, or store: responses submitted by the public to forms you
               create (these go directly to your own Google account), files in your Google Drive
-              other than the ones this app creates on your behalf, or your email inbox.
+              other than the ones My AI Form Maker creates on your behalf, or your email inbox.
             </p>
           </Section>
 
@@ -92,7 +92,7 @@ export default function PrivacyPolicyPage() {
               <li>To authenticate you and keep you signed in.</li>
               <li>To create, update, and manage Google Forms and Drive files that you request.</li>
               <li>
-                When you update a form you published through this app, to read that form&apos;s
+                When you update a form you published through My AI Form Maker, to read that form&apos;s
                 current structure so its questions can be replaced with your new version.
               </li>
               <li>To save and display your draft and published form history.</li>
@@ -103,7 +103,7 @@ export default function PrivacyPolicyPage() {
 
           <Section title="5. Google API Services User Data Policy">
             <p>
-              AI Form Maker&apos;s use and transfer of information received from Google APIs to
+              My AI Form Maker&apos;s use and transfer of information received from Google APIs to
               any other app adheres to the{" "}
               <a
                 href="https://developers.google.com/terms/api-services-user-data-policy"
@@ -136,7 +136,7 @@ export default function PrivacyPolicyPage() {
             <p>
               Form drafts and metadata remain in your account until you delete them from the
               dashboard or request deletion. Deleting a form from the dashboard removes our record
-              of it; the Google Form itself stays in your Google Drive until you delete it there. You can revoke this app&apos;s access to your Google
+              of it; the Google Form itself stays in your Google Drive until you delete it there. You can revoke My AI Form Maker&apos;s access to your Google
               Account at any time from your{" "}
               <a
                 href="https://myaccount.google.com/permissions"
@@ -160,7 +160,7 @@ export default function PrivacyPolicyPage() {
 
           <Section title="9. Children's Privacy">
             <p>
-              AI Form Maker is intended for administrative, educational, and official use by
+              My AI Form Maker is intended for administrative, educational, and official use by
               adults. It is not directed at children, and we do not knowingly collect information
               from children.
             </p>

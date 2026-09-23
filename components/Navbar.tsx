@@ -41,7 +41,7 @@ export default function Navbar() {
             </div>
             <div className="min-w-0">
               <span className="text-base font-semibold tracking-tight text-slate-900 block leading-none truncate">
-                AI Form Maker
+                My AI Form Maker
               </span>
               <span className="text-[11px] font-medium text-slate-500 tracking-wide uppercase hidden sm:block">
                 Google Forms Assistant

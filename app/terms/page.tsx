@@ -1,8 +1,8 @@
 import { FileText } from "lucide-react";
 
 export const metadata = {
-  title: "Terms of Service - AI Form Maker",
-  description: "The terms that govern your use of AI Form Maker.",
+  title: "Terms of Service",
+  description: "The terms that govern your use of My AI Form Maker.",
 };
 
 const SUPPORT_EMAIL = "homeofirstt@gmail.com";
@@ -27,7 +27,7 @@ export default function TermsOfServicePage() {
             <span>Terms of Service</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            AI Form Maker Terms of Service
+            My AI Form Maker Terms of Service
           </h1>
           <p className="text-xs text-slate-500">Effective date: {EFFECTIVE_DATE}</p>
         </div>
@@ -35,7 +35,7 @@ export default function TermsOfServicePage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 space-y-8">
           <Section title="1. Acceptance of Terms">
             <p>
-              By accessing or using AI Form Maker (&quot;the service&quot;), you agree to these
+              By accessing or using My AI Form Maker (&quot;the service&quot;), you agree to these
               Terms of Service and our{" "}
               <a href="/privacy" className="text-gov-700 underline hover:text-gov-900">
                 Privacy Policy
@@ -46,7 +46,7 @@ export default function TermsOfServicePage() {
 
           <Section title="2. Description of Service">
             <p>
-              AI Form Maker lets you describe a form in natural language and uses AI to generate a
+              My AI Form Maker lets you describe a form in natural language and uses AI to generate a
               structured Google Form, which is created directly in your own Google Drive using
               your authorized Google Account. You can edit the form in a live preview, save drafts,
               and later update forms you published through the service.
@@ -61,7 +61,7 @@ export default function TermsOfServicePage() {
           <Section title="3. Your Google Account &amp; Permissions">
             <p>
               To create forms, you must sign in with Google and grant permission to create and
-              manage Google Forms and Drive files created by this app. You may revoke this
+              manage Google Forms and Drive files created by My AI Form Maker. You may revoke this
               permission at any time from your{" "}
               <a
                 href="https://myaccount.google.com/permissions"
@@ -89,7 +89,7 @@ export default function TermsOfServicePage() {
           <Section title="5. Your Content">
             <p>
               You retain full ownership of the forms, questions, and responses you create. Google
-              Forms created through this service live in your own Google Drive, and respondent
+              Forms created through My AI Form Maker live in your own Google Drive, and respondent
               answers are delivered directly to your Google account &mdash; we do not access or
               store them.
             </p>
@@ -129,7 +129,7 @@ export default function TermsOfServicePage() {
 
           <Section title="9. Limitation of Liability">
             <p>
-              To the maximum extent permitted by law, AI Form Maker and its developer are not
+              To the maximum extent permitted by law, My AI Form Maker and its developer are not
               liable for any indirect, incidental, or consequential damages arising from your use
               of the service, including issues with forms created, data submitted by respondents,
               or third-party services (Google, Groq) the app depends on.

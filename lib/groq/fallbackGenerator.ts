@@ -19,7 +19,7 @@ export function generateSmartFallbackForm(
   const greetings = ["hi", "hii", "hiii", "hello", "helo", "hey", "heyy", "namaste", "good morning", "good afternoon", "good evening", "greetings", "pranam"];
   if (greetings.includes(clean)) {
     return {
-      reply: "Hello! I am your AI Google Forms assistant. I can help you create and structure any Google Form from plain English. What kind of form would you like to build today?",
+      reply: "Hello! I'm My AI Form Maker, your AI Google Forms assistant. I can help you create and structure any Google Form from plain English. What kind of form would you like to build today?",
       isClarification: false,
       suggestions: [
         "Registration form for students and teachers",

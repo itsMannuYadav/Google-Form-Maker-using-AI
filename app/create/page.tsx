@@ -112,7 +112,7 @@ function CreateFormContent() {
       id: "msg_welcome",
       sender: "assistant",
       content:
-        "Hello! I am your Google Forms assistant. Describe what information your form should collect (for example: student registration, employee survey, project feedback, or scholarship application) and I will design it for you.",
+        "Hello! I'm My AI Form Maker, your Google Forms assistant. Describe what information your form should collect (for example: student registration, employee survey, project feedback, or scholarship application) and I will design it for you.",
       timestamp: Date.now(),
       suggestions: [
         "Registration form for students and teachers",
@@ -406,13 +406,13 @@ function CreateFormContent() {
           </Link>
           <span className="shrink-0">/</span>
           <span className="font-semibold text-slate-800 truncate">
-            {formDef?.title || "New Form Builder"}
+            {formDef?.title || "Untitled form"}
           </span>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-[11px] text-slate-500 hidden sm:inline">
-            Natural Language Form Builder
+            My AI Form Maker
           </span>
         </div>
       </div>
@@ -650,7 +650,7 @@ export default function CreateFormPage() {
         <div className="flex-1 flex items-center justify-center p-8 bg-slate-50">
           <div className="flex items-center gap-3 text-slate-500 text-sm">
             <Loader2 className="h-5 w-5 animate-spin text-gov-800" />
-            <span>Loading Form Builder…</span>
+            <span>Loading My AI Form Maker…</span>
           </div>
         </div>
       }

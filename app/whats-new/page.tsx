@@ -5,8 +5,8 @@ import Screenshot from "@/components/Screenshot";
 import type { ScreenshotName } from "@/lib/screenshots";
 
 export const metadata = {
-  title: "What's New - AI Form Maker",
-  description: "The latest improvements to AI Form Maker.",
+  title: "What's New",
+  description: "The latest improvements to My AI Form Maker.",
 };
 
 interface Update {
@@ -124,7 +124,7 @@ export default function WhatsNewPage() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">What&apos;s New</h1>
           <p className="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
-            The latest improvements to AI Form Maker. For how-to steps, see the{" "}
+            The latest improvements to My AI Form Maker. For how-to steps, see the{" "}
             <Link href="/help" className="font-semibold text-gov-800 underline hover:text-gov-900">
               User Guide
             </Link>

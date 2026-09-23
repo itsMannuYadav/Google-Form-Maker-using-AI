@@ -165,7 +165,7 @@ export default function LandingPage() {
               name="builder"
               frame="browser"
               priority
-              alt="The form builder: AI chat on the left and a live Google Form preview on the right"
+              alt="My AI Form Maker: AI chat on the left and a live Google Form preview on the right"
               caption="Chat with the AI on the left — the live Google Form preview on the right updates with every change."
             />
           </div>
@@ -427,7 +427,7 @@ export default function LandingPage() {
                 <Shield className="h-5 w-5 text-emerald-400" />
                 <h3 className="text-sm font-semibold">Direct Google API</h3>
                 <p className="text-xs text-slate-400">
-                  Uses the official Google Forms API with standard OAuth2 sign-in. Permissions are limited to forms this app creates.
+                  Uses the official Google Forms API with standard OAuth2 sign-in. Permissions are limited to forms My AI Form Maker creates.
                 </p>
               </div>
 
@@ -475,7 +475,7 @@ export default function LandingPage() {
               },
               {
                 q: "What Google permissions are needed?",
-                a: "Only permission to create and manage the Google Forms and files this app creates. We never access your other Drive files or your email.",
+                a: "Only permission to create and manage the Google Forms and files My AI Form Maker creates. We never access your other Drive files or your email.",
               },
             ].map((faq, i) => (
               <div key={i} className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-2">
