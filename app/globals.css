@@ -65,6 +65,16 @@
   background: rgba(100, 116, 139, 0.6);
 }
 
+/* Fills the viewport below the sticky navbar. Uses dvh (dynamic viewport
+   height) so mobile browser toolbars that show/hide on scroll don't leave
+   content (like the chat composer) stranded off-screen; falls back to vh
+   on browsers that don't support dvh, since the invalid declaration is
+   simply ignored and the line above it stays in effect. */
+.app-shell-height {
+  height: calc(100vh - 4rem);
+  height: calc(100dvh - 4rem);
+}
+
 /* Google Forms style purple accents for preview fidelity */
 .gform-accent-border {
   border-top: 8px solid #673ab7;

@@ -308,7 +308,7 @@ function CreateFormContent() {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-white relative">
+    <div className="flex flex-col app-shell-height overflow-hidden bg-white relative">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="absolute top-4 right-4 z-50 rounded-xl bg-slate-900 text-white px-4 py-2.5 text-xs shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
