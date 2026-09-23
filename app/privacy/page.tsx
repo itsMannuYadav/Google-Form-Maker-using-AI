@@ -77,6 +77,13 @@ export default function PrivacyPolicyPage() {
               structure. Prompts are processed to produce a response and are not used to build
               advertising profiles.
             </p>
+            <p>
+              <span className="font-semibold text-slate-800">Files you upload.</span> If you attach
+              an image, PDF, or Word document so the AI can build a form from it, the image or the
+              text extracted from the document is sent to Groq for that single request. Uploaded
+              files are processed in memory and are not saved by My AI Form Maker. Avoid uploading
+              documents that contain personal or sensitive information you do not want processed.
+            </p>
           </Section>
 
           <Section title="3. Information We Do Not Collect">
@@ -126,7 +133,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <span className="font-semibold text-slate-800">Groq.</span> Processes your typed
-                prompts to generate form structure.
+                prompts and any files you attach to generate form structure.
               </li>
             </ul>
             <p>We do not sell or rent your personal information to anyone.</p>

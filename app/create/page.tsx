@@ -12,6 +12,7 @@ import CreateSuccessModal from "@/components/form-builder/CreateSuccessModal";
 import { Sparkles, ArrowLeft, Loader2, AlertTriangle, ExternalLink, CheckCircle2, ShieldAlert, LogIn, MessageSquare, Eye } from "lucide-react";
 import Link from "next/link";
 import { generateId } from "@/lib/utils";
+import { downscaleImage } from "@/lib/imageResize";
 
 function CreateFormContent() {
   const searchParams = useSearchParams();
@@ -128,14 +129,15 @@ function CreateFormContent() {
     }
   }, [initialPrompt, editFormId]);
 
-  const handleSendMessage = async (userPrompt: string) => {
-    if (!userPrompt.trim() || loading) return;
+  const handleSendMessage = async (userPrompt: string, file?: File) => {
+    if ((!userPrompt.trim() && !file) || loading) return;
 
     const userMsg: ChatMessage = {
       id: generateId("msg"),
       sender: "user",
-      content: userPrompt,
+      content: userPrompt.trim() || "Create a form from this file.",
       timestamp: Date.now(),
+      attachmentName: file?.name,
     };
 
     const newHistory = [...messages, userMsg];
@@ -147,19 +149,36 @@ function CreateFormContent() {
     const formSnapshotBefore = formDef;
 
     try {
-      const response = await fetch("/api/groq/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: userPrompt,
-          chatHistory: newHistory,
-          currentForm: formDef,
-        }),
-      });
+      let response: Response;
+      if (file) {
+        const body = new FormData();
+        body.append("file", await downscaleImage(file));
+        body.append("prompt", userPrompt);
+        body.append("chatHistory", JSON.stringify(newHistory));
+        body.append("currentForm", JSON.stringify(formDef));
+        response = await fetch("/api/groq/generate", { method: "POST", body });
+      } else {
+        response = await fetch("/api/groq/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: userPrompt,
+            chatHistory: newHistory,
+            currentForm: formDef,
+          }),
+        });
+      }
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        if (data.userFacing) {
+          setMessages((prev) => [
+            ...prev,
+            { id: generateId("msg"), sender: "assistant", content: data.error, timestamp: Date.now() },
+          ]);
+          return;
+        }
         throw new Error(data.error || "Failed to process form request.");
       }
 

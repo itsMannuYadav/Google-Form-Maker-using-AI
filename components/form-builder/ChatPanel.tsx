@@ -2,12 +2,33 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChatMessage } from "@/types/form";
-import { Send, Sparkles, User, Bot, HelpCircle, ArrowRight, Loader2, RefreshCw, Copy, Check, Undo2 } from "lucide-react";
+import { Send, Sparkles, User, Bot, HelpCircle, ArrowRight, Loader2, RefreshCw, Copy, Check, Undo2, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
+
+const ACCEPTED_FILES = ".jpg,.jpeg,.png,.webp,.pdf,.docx";
+const MAX_DOC_BYTES = 4 * 1024 * 1024;
+// Images are downscaled in the browser before upload, so larger originals are fine.
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED_DOC_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
+function validateFile(file: File): string | null {
+  const name = file.name.toLowerCase();
+  const isImage = /\.(jpe?g|png|webp)$/.test(name) || ACCEPTED_IMAGE_TYPES.includes(file.type);
+  const isDoc = /\.(pdf|docx)$/.test(name) || ACCEPTED_DOC_TYPES.includes(file.type);
+  if (!isImage && !isDoc) return "Please attach an image (JPG, PNG, WEBP), a PDF, or a Word (.docx) file.";
+  if (isImage && file.size > MAX_IMAGE_BYTES) return "That image is too large (max 20 MB).";
+  if (isDoc && file.size > MAX_DOC_BYTES) return "That document is too large (max 4 MB).";
+  return null;
+}
 
 interface ChatPanelProps {
   messages: ChatMessage[];
   loading: boolean;
-  onSendMessage: (text: string) => void;
+  onSendMessage: (text: string, file?: File) => void;
   onResetChat?: () => void;
   onUndoMessage?: (message: ChatMessage) => void;
 }
@@ -22,7 +43,102 @@ export default function ChatPanel({
   const [input, setInput] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [pendingUndo, setPendingUndo] = useState<ChatMessage | null>(null);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const dragDepth = useRef(0);
+  const dragIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hideDropOverlay = () => {
+    dragDepth.current = 0;
+    setIsDragging(false);
+    if (dragIdleTimer.current) clearTimeout(dragIdleTimer.current);
+  };
+
+  // Browsers fire dragover repeatedly during a drag. If it stops (drag cancelled,
+  // cursor left the window), hide the overlay instead of leaving it stuck.
+  const keepDropOverlayAlive = () => {
+    if (dragIdleTimer.current) clearTimeout(dragIdleTimer.current);
+    dragIdleTimer.current = setTimeout(hideDropOverlay, 1000);
+  };
+
+  const attachFile = (file: File) => {
+    if (loading) return;
+    // Pasted screenshots all arrive as "image.png"; give them a clearer name.
+    if (/^image\.\w+$/i.test(file.name)) {
+      const ext = file.type.split("/")[1] || "png";
+      file = new File([file], `pasted-image-${Date.now()}.${ext}`, { type: file.type });
+    }
+    const error = validateFile(file);
+    setFileError(error);
+    setAttachedFile(error ? null : file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (file) attachFile(file);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const file = e.clipboardData.files?.[0];
+    if (!file) return; // plain text paste — let the textarea handle it
+    e.preventDefault();
+    attachFile(file);
+  };
+
+  const isFileDrag = (e: React.DragEvent) => e.dataTransfer.types.includes("Files");
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    dragDepth.current += 1;
+    setIsDragging(true);
+    keepDropOverlayAlive();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    keepDropOverlayAlive();
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!isFileDrag(e)) return;
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) hideDropOverlay();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    hideDropOverlay();
+    const file = e.dataTransfer.files?.[0];
+    if (file) attachFile(file);
+  };
+
+  // Stop the browser from opening a file that's dropped anywhere else on the
+  // page, which would navigate away and lose the current draft.
+  useEffect(() => {
+    const block = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes("Files")) e.preventDefault();
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") hideDropOverlay();
+    };
+    window.addEventListener("dragover", block);
+    window.addEventListener("drop", block);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("dragover", block);
+      window.removeEventListener("drop", block);
+      window.removeEventListener("keydown", onKeyDown);
+      if (dragIdleTimer.current) clearTimeout(dragIdleTimer.current);
+    };
+  }, []);
 
   const handleCopy = async (msg: ChatMessage) => {
     try {
@@ -50,9 +166,11 @@ export default function ChatPanel({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
-    onSendMessage(input.trim());
+    if ((!input.trim() && !attachedFile) || loading) return;
+    onSendMessage(input.trim(), attachedFile ?? undefined);
     setInput("");
+    setAttachedFile(null);
+    setFileError(null);
   };
 
   const handleChipClick = (suggestion: string) => {
@@ -61,7 +179,31 @@ export default function ChatPanel({
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full min-h-0 bg-white border-r border-slate-200 overflow-hidden">
+    <div
+      className="relative flex flex-col flex-1 h-full min-h-0 bg-white border-r border-slate-200 overflow-hidden"
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag-and-drop overlay */}
+      {isDragging && (
+        <div className="absolute inset-2 z-40 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gov-600 bg-gov-50/90 text-gov-900">
+          <button
+            type="button"
+            onClick={hideDropOverlay}
+            title="Close (Esc)"
+            aria-label="Close drop area"
+            className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900 transition-colors cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <Paperclip className="h-6 w-6" />
+          <p className="text-sm font-semibold">Drop your file to attach it</p>
+          <p className="text-xs text-slate-600">Image (JPG, PNG, WEBP), PDF, or Word (.docx)</p>
+        </div>
+      )}
+
       {/* Scrollable region: header scrolls away with the messages, not pinned */}
       <div className="flex-1 min-h-0 overflow-y-auto">
         {/* Header */}
@@ -120,7 +262,13 @@ export default function ChatPanel({
                       : "bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200/70"
                   }`}
                 >
-                  {msg.content}
+                  {msg.attachmentName && (
+                    <div className="mb-1.5 inline-flex max-w-full items-center gap-1.5 rounded-md bg-white/15 px-2 py-1 text-xs">
+                      <Paperclip className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{msg.attachmentName}</span>
+                    </div>
+                  )}
+                  <div>{msg.content}</div>
                 </div>
 
                 {/* Copy / Undo actions (ChatGPT-style, on both user and assistant messages) */}
@@ -196,55 +344,100 @@ export default function ChatPanel({
           </div>
         )}
 
+        {/* Suggested Starting Prompts when chat is empty — scrolls with the messages */}
+        {messages.length <= 1 && (
+          <div className="rounded-xl border border-slate-100 bg-slate-50/50 px-3 py-2">
+            <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">
+              Quick Examples:
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                "Registration form for students and teachers",
+                "Feedback survey with ratings 1 to 5",
+                "Scholarship application with personal & academic details",
+                "Staff leave application form",
+              ].map((eg, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleChipClick(eg)}
+                  className="text-xs text-left bg-white border border-slate-200 hover:border-gov-300 hover:bg-gov-50 text-slate-700 rounded-md px-2.5 py-1 transition-colors cursor-pointer"
+                >
+                  {eg}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* Suggested Starting Prompts when chat is empty */}
-      {messages.length <= 1 && (
-        <div className="shrink-0 px-4 py-2 border-t border-slate-100 bg-slate-50/50">
-          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">
-            Quick Examples:
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {[
-              "Registration form for students and teachers",
-              "Feedback survey with ratings 1 to 5",
-              "Scholarship application with personal & academic details",
-              "Staff leave application form",
-            ].map((eg, i) => (
-              <button
-                key={i}
-                onClick={() => handleChipClick(eg)}
-                className="text-xs text-left bg-white border border-slate-200 hover:border-gov-300 hover:bg-gov-50 text-slate-700 rounded-md px-2.5 py-1 transition-colors cursor-pointer"
-              >
-                {eg}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Input Box */}
       <form onSubmit={handleSubmit} className="shrink-0 p-3 border-t border-slate-200 bg-white">
+        {(attachedFile || fileError) && (
+          <div className="mb-2 flex items-center gap-2">
+            {attachedFile ? (
+              <div className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700">
+                {attachedFile.type.startsWith("image/") ? (
+                  <ImageIcon className="h-3.5 w-3.5 shrink-0 text-gov-700" />
+                ) : (
+                  <FileText className="h-3.5 w-3.5 shrink-0 text-gov-700" />
+                )}
+                <span className="truncate">{attachedFile.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setAttachedFile(null)}
+                  title="Remove file"
+                  className="rounded p-0.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-red-600">{fileError}</p>
+            )}
+          </div>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPTED_FILES}
+          onChange={handleFileChange}
+          className="hidden"
+        />
         <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
+            title="Attach an image, PDF, or Word document"
+            className="absolute left-2 bottom-3 flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-gov-800 disabled:opacity-40 transition-colors cursor-pointer"
+          >
+            <Paperclip className="h-4 w-4" />
+          </button>
           <textarea
             rows={2}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onPaste={handlePaste}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 handleSubmit(e);
               }
             }}
-            placeholder="Tell AI what to create or change (e.g., 'Make mobile number required', 'Add district question')..."
-            className="w-full resize-none rounded-xl border border-slate-300 py-2.5 pl-3.5 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:border-gov-700 focus:outline-none focus:ring-1 focus:ring-gov-700 leading-normal"
+            placeholder={
+              attachedFile
+                ? "Optional: tell AI what to do with this file..."
+                : "Tell AI what to create or change, or attach a photo/PDF of a form..."
+            }
+            className="w-full resize-none rounded-xl border border-slate-300 py-2.5 pl-11 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:border-gov-700 focus:outline-none focus:ring-1 focus:ring-gov-700 leading-normal"
             disabled={loading}
           />
           <button
             type="submit"
-            disabled={!input.trim() || loading}
+            disabled={(!input.trim() && !attachedFile) || loading}
             className="absolute right-2.5 bottom-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gov-800 text-white shadow-sm hover:bg-gov-900 disabled:opacity-40 transition-colors cursor-pointer"
             title="Send request"
           >

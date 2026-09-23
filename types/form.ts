@@ -67,6 +67,8 @@ export interface ChatMessage {
   // lets the user undo just that one change.
   formSnapshotBefore?: FormDefinition | null;
   undone?: boolean;
+  // Name of a file the user attached to this message (the file itself is not kept).
+  attachmentName?: string;
 }
 
 export interface SavedFormRecord {

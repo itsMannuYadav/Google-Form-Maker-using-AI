@@ -11,14 +11,15 @@ My AI Form Maker is a production-ready web app that lets administrative staff, g
 ## 🌟 Key Features
 
 1. **Natural Language Form Design** — Describe your form requirements in plain English (or your own language).
-2. **Intelligent Clarification** — The AI asks 1–2 focused questions with clickable suggestion chips to refine sections and questions.
-3. **Real-time Live Preview** — Google Forms–style preview with inline title edits, reordering, duplicate, delete, and a question settings editor.
-4. **Natural Language Modifications** — Change forms on the fly (e.g. *"Make mobile number mandatory"*, *"Add district question"*, *"Remove gender"*).
-5. **Direct Google Forms Publishing** — Creates real Google Forms in your own Google Drive, with responder and edit links.
-6. **Update Without Breaking Links** — Re-publish changes to an existing form; the share link stays the same and no duplicates are created.
-7. **Dashboard** — Keep editing drafts, reopen published forms, and manage everything in one place.
-8. **Undo & Custom Confirmation Messages** — Undo AI changes and write your own post-submission message.
-9. **Government & Admin Friendly UI** — Calm, high-trust design with zero technical jargon, fully responsive on mobile.
+2. **Create From a File** — Attach a photo/screenshot of a paper form, a PDF, or a Word (.docx) document and the AI turns it into a Google Form. Images are read by Groq's vision model (`qwen/qwen3.8-27b`); PDF/DOCX text is extracted server-side. Files are processed in memory and never stored.
+3. **Intelligent Clarification** — The AI asks 1–2 focused questions with clickable suggestion chips to refine sections and questions.
+4. **Real-time Live Preview** — Google Forms–style preview with inline title edits, reordering, duplicate, delete, and a question settings editor.
+5. **Natural Language Modifications** — Change forms on the fly (e.g. *"Make mobile number mandatory"*, *"Add district question"*, *"Remove gender"*).
+6. **Direct Google Forms Publishing** — Creates real Google Forms in your own Google Drive, with responder and edit links.
+7. **Update Without Breaking Links** — Re-publish changes to an existing form; the share link stays the same and no duplicates are created.
+8. **Dashboard** — Keep editing drafts, reopen published forms, and manage everything in one place.
+9. **Undo & Custom Confirmation Messages** — Undo AI changes and write your own post-submission message.
+10. **Government & Admin Friendly UI** — Calm, high-trust design with zero technical jargon, fully responsive on mobile.
 
 ---
 
