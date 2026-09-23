@@ -17,6 +17,7 @@ import {
   Share2,
   Layers,
   Sparkles,
+  Edit3,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -131,6 +132,14 @@ export default function FormDetailsPage() {
 
             {/* Quick Actions */}
             <div className="flex flex-col gap-2 shrink-0">
+              <Link
+                href={`/create?formId=${formRecord.id}`}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Edit Form</span>
+              </Link>
+
               {formRecord.responderUri && (
                 <a
                   href={formRecord.responderUri}

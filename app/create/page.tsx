@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import { FormDefinition, FormQuestion, ChatMessage } from "@/types/form";
-import { saveFormDraft, updateFormPublication } from "@/lib/firebase/firestore";
+import { saveFormDraft, updateFormPublication, getFormById } from "@/lib/firebase/firestore";
 import ChatPanel from "@/components/form-builder/ChatPanel";
 import FormPreview from "@/components/form-builder/FormPreview";
 import QuestionEditorModal from "@/components/form-builder/QuestionEditorModal";
@@ -16,6 +16,7 @@ import { generateId } from "@/lib/utils";
 function CreateFormContent() {
   const searchParams = useSearchParams();
   const initialPrompt = searchParams.get("prompt");
+  const editFormId = searchParams.get("formId");
   const router = useRouter();
   const { user, googleAccessToken, signInWithGoogle } = useAuth();
 
@@ -23,6 +24,7 @@ function CreateFormContent() {
   const [currentFormId, setCurrentFormId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingExistingForm, setLoadingExistingForm] = useState(Boolean(editFormId));
   const [isPublishing, setIsPublishing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<"chat" | "preview">("chat");
@@ -72,8 +74,38 @@ function CreateFormContent() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Initial welcome message
+  // Initial welcome message, or load an existing saved form for editing
   useEffect(() => {
+    if (editFormId) {
+      setLoadingExistingForm(true);
+      getFormById(editFormId)
+        .then((record) => {
+          if (record) {
+            setFormDef(record.formDefinition);
+            setCurrentFormId(record.id);
+            setMessages([
+              {
+                id: "msg_welcome",
+                sender: "assistant",
+                content: `Loaded your saved form "${record.title}". Ask me to make changes, or use the buttons on the preview to edit questions directly.`,
+                timestamp: Date.now(),
+              },
+            ]);
+          } else {
+            setMessages([
+              {
+                id: "msg_welcome",
+                sender: "assistant",
+                content: "I couldn't find that saved form — it may have been deleted. Tell me what form you would like to create instead.",
+                timestamp: Date.now(),
+              },
+            ]);
+          }
+        })
+        .finally(() => setLoadingExistingForm(false));
+      return;
+    }
+
     const welcomeMsg: ChatMessage = {
       id: "msg_welcome",
       sender: "assistant",
@@ -92,7 +124,7 @@ function CreateFormContent() {
     if (initialPrompt && initialPrompt.trim()) {
       handleSendMessage(initialPrompt.trim());
     }
-  }, [initialPrompt]);
+  }, [initialPrompt, editFormId]);
 
   const handleSendMessage = async (userPrompt: string) => {
     if (!userPrompt.trim() || loading) return;
@@ -330,6 +362,17 @@ function CreateFormContent() {
       },
     ]);
   };
+
+  if (loadingExistingForm) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50 app-shell-height">
+        <div className="flex items-center gap-3 text-slate-500 text-sm">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-gov-800 border-t-transparent" />
+          <span>Loading your form…</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col app-shell-height overflow-hidden bg-white relative">

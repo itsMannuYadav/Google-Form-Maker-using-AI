@@ -224,7 +224,7 @@ export default function DashboardPage() {
                           </a>
                         )}
                         <Link
-                          href={`/forms/${form.id}`}
+                          href={`/create?formId=${form.id}`}
                           className="flex-1 inline-flex items-center justify-center gap-1 rounded-md border border-slate-200 px-2.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
@@ -328,8 +328,9 @@ export default function DashboardPage() {
                               )}
 
                               <Link
-                                href={`/forms/${form.id}`}
-                                title="View Details"
+                                href={`/create?formId=${form.id}`}
+                                title="Edit Form"
+                                onClick={(e) => e.stopPropagation()}
                                 className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors"
                               >
                                 <Edit3 className="h-4 w-4" />

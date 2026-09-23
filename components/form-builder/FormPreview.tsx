@@ -47,6 +47,7 @@ export default function FormPreview({
 }: FormPreviewProps) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingDesc, setEditingDesc] = useState(false);
+  const [editingConfirmation, setEditingConfirmation] = useState(false);
 
   if (!formDef || formDef.sections.length === 0) {
     return (
@@ -141,9 +142,9 @@ export default function FormPreview({
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full min-h-0 bg-slate-100/70 overflow-hidden">
-      {/* Top Action Bar */}
-      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-4 sm:px-6 py-3 bg-white border-b border-slate-200 shadow-xs">
+    <div className="flex flex-col flex-1 h-full min-h-0 bg-slate-100/70 overflow-y-auto">
+      {/* Top Action Bar (scrolls with the page, not sticky) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-4 sm:px-6 py-3 bg-white border-b border-slate-200 shadow-xs">
         <div className="flex items-center gap-2 min-w-0">
           <span className="inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 border border-purple-200 shrink-0">
             Google Form Ready
@@ -177,7 +178,7 @@ export default function FormPreview({
       </div>
 
       {/* Main Form Body Container */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 max-w-3xl mx-auto w-full">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-3xl mx-auto w-full">
         {/* Form Title & Description Card (Google Form Header Card) */}
         <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200 gform-accent-border relative">
           <div className="space-y-3">
@@ -379,15 +380,38 @@ export default function FormPreview({
           </button>
         </div>
 
-        {/* Confirmation Message Preview Card */}
-        {formDef.confirmationMessage && (
-          <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 space-y-1">
-            <span className="font-semibold text-slate-800 uppercase tracking-wider text-[10px]">
-              Submission Confirmation Message
-            </span>
-            <p>{formDef.confirmationMessage}</p>
-          </div>
-        )}
+        {/* Confirmation Message Card (editable) */}
+        <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 space-y-1.5">
+          <span className="font-semibold text-slate-800 uppercase tracking-wider text-[10px]">
+            Submission Confirmation Message
+          </span>
+          {editingConfirmation ? (
+            <textarea
+              autoFocus
+              rows={2}
+              value={formDef.confirmationMessage || ""}
+              onChange={(e) => onUpdateForm({ ...formDef, confirmationMessage: e.target.value })}
+              onBlur={() => setEditingConfirmation(false)}
+              className="w-full text-xs text-slate-700 border border-slate-300 rounded-md p-2 bg-white focus:border-gov-700 focus:outline-none"
+            />
+          ) : (
+            <div
+              onClick={() => setEditingConfirmation(true)}
+              className="group flex items-start justify-between cursor-pointer"
+              title="Click to edit confirmation message"
+            >
+              <p>
+                {formDef.confirmationMessage ||
+                  "Click to write what respondents see after they submit the form."}
+              </p>
+              <Edit2 className="h-3.5 w-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2 mt-0.5" />
+            </div>
+          )}
+          <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
+            Note: Google Forms&apos; API doesn&apos;t support setting this message automatically. After creating
+            the form, open it in Google Forms → Settings → Presentation → Confirmation message to paste this in.
+          </p>
+        </div>
       </div>
     </div>
   );
